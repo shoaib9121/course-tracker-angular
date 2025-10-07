@@ -1,0 +1,76 @@
+<div *ngIf="show()" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+  <div class="bg-white p-6 rounded shadow w-96 max-w-full">
+    <h3 class="font-semibold text-lg mb-4 relative flex justify-between align-center">Create New Exam
+      <button
+        (click)="closeModal()"
+        class="text-gray-500 hover:text-gray-700 text-xl"
+        aria-label="Close"
+      >
+      &times;
+      </button>
+    </h3>
+
+    <form [formGroup]="createExamForm" (ngSubmit)="onSubmit()">
+      <div class="mb-2">
+        <label>* Exam title</label>
+        <input type="text" formControlName="title" placeholder="Add title of exam" class="w-full p-2 border rounded" />
+      </div>
+      <div class="mb-2">
+        <label>* Description</label>
+        <textarea formControlName="description" placeholder="Exam description" class="w-full mb-2 p-2 border rounded"></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 mb-2">
+        <div>
+          <label>* Start Date</label>
+          <input type="date" placeholder="Select date" formControlName="startDate" class="w-full p-2 border rounded" />
+        </div>
+        <div>
+          <label>* Start Time</label>
+          <input type="time" placeholder="Select time" formControlName="startTime" class="w-full p-2 border rounded" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 mb-2">
+        <div>
+          <label>* End Date</label>
+          <input type="date" placeholder="Select date" formControlName="endDate" class="w-full p-2 border rounded" />
+        </div>
+        <div>
+          <label>* End Time</label>
+          <input type="time" placeholder="Select time" formControlName="endTime" class="w-full p-2 border rounded" />
+        </div>
+      </div>
+
+      <div class="mb-2">
+        <label>* Duration</label>
+        <input type="text" placeholder="e.g. 30 min" formControlName="duration" class="w-full p-2 border rounded" />
+      </div>
+
+      <div class="mb-4">
+        <label>* Number of Attempts</label>
+        <div class="flex gap-2 mt-1">
+          <label *ngFor="let n of [1,2,3,4,5,6]">
+            <input type="radio" formControlName="attempts" [value]="n" /> {{n}}
+          </label>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label>* View Correct Answer</label>
+        <div class="flex gap-2 mt-1">
+          <label>
+            <input type="radio" formControlName="viewCorrect" value="yes" /> Yes
+          </label>
+          <label>
+            <input type="radio" formControlName="viewCorrect" value="no" /> No
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+        {{ examToEdit ? 'Update' : 'Create'}}
+      </button>
+    </form>
+  </div>
+</div>

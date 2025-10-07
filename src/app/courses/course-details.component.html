@@ -1,0 +1,175 @@
+<div class="p-4 bg-[#FAF8F3]">
+  <h1 class="text-2xl font-bold">Course Details</h1>
+
+  <!-- Course Card -->
+  <div *ngFor="let course of store.courses()" class="mt-4 mb-10 p-4 border-[2px] rounded-[16px] bg-[#F3F8FB]">
+    <div class="flex items-center gap-2">
+      <span class="text-3xl">{{ course.icon }}</span>
+      <h2 class="text-xl font-semibold">{{ course.title }}</h2>
+    </div>
+    <p class="mt-2 text-[12px] font-[600]">Completed</p>
+
+    <!-- Progress Bar -->
+    <div class="mt-2">
+      <div class="w-full bg-gray-200 rounded-full h-3">
+        <div
+          class="bg-green-500 h-3 rounded-full"
+          [style.width.%]="courseProgress()"
+        ></div>
+      </div>
+      <p class="text-sm mt-1 text-[#727688]">Todos: {{ todosCount() }}</p>
+    </div>
+  </div>
+
+  <h2 class="font-semibold">All Topics</h2>
+
+  <!-- All Topics Section -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+    <div *ngFor="let topic of currentWeekContent()?.topics" class="p-3 space-y-2">
+      <div class="flex justify-between items-center">
+        <span class="p-2 pr-4">
+          <lucide-icon size="32" [name]="topic.icon" [color]="topic.iconColor"></lucide-icon>
+        </span>
+      <div class="flex-1">
+          <div class="flex justify-between items-center">
+            <span>{{ topic.name }}</span>
+            <span class="text-sm text-gray-700 text-[12px] rounded-full px-[6px] py-[4px] bg-[#F2DFD8]">{{ topic.achieved }}/{{ topic.total }}</span>
+          </div>
+          <p class="mb-2 text-xs text-gray-600">{{ topic.label }}</p>
+          <div class="w-full bg-gray-200 rounded-full h-1">
+            <div [class]="topic.color + ' h-1 rounded-full'" [style.width.%]="computePercentage(topic)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Week Selector Carousel -->
+  <div class="mt-6 flex items-center gap-2 bg-[#FFF7DD] rounded-[16px] border border-[stroke-color/black-04 p-2">
+    <button (click)="prevWeek()" class="px-2 py-1 rounded"><lucide-icon name="chevron-left"></lucide-icon></button>
+
+    <div class="flex-1 text-center px-4 py-1 bg-[#FED143] rounded-[12px]">
+      <span *ngFor="let week of weeks">
+        <span
+          *ngIf="week.id === selectedWeekId()"
+          class="text-[12px] md:text-[16px]"
+        >
+          <span class="font-semibold inline-block mr-2">Week {{ week.id }}</span>
+          <span>({{ week.start | date:'dd/MM/yyyy' }} - {{ week.end | date:'dd/MM/yyyy' }})</span>
+        </span>
+      </span>
+    </div>
+    <button (click)="nextWeek()" class="px-2 py-1 rounded"><lucide-icon name="chevron-right"></lucide-icon></button>
+  </div>
+
+  <!-- Current Week Content -->
+  <div class="mt-4 p-3">
+    <h4 class="font-bold text-[16px] mb-3">{{ currentWeekContent()?.title }}</h4>
+    <p class="font-extrabold text-[14px]">Description</p>
+    <p class="text-gray-600 text-[14px] mb-2">{{ currentWeekContent()?.description }}</p>
+    <a class="font-bold text-[14px] text-[#5822BD]" href="#">Show more...</a>
+  </div>
+
+  <!-- Filter Chips -->
+  <div class="mb-2 mt-6 flex gap-2 p-2 bg-[#FFF7DD] border border-[stroke-color/black-04] rounded-[16px]">
+    <button
+      (click)="selectedFilter.set('all')"
+      [class.bg-[#FED143]]="selectedFilter() === 'all'"
+      class="px-3 py-2 font-semibold text-[12px] md:text-[16px] rounded-[12px] flex-1"
+    >
+      All
+    </button>
+    <button
+      (click)="selectedFilter.set('todo')"
+      [class.bg-[#FED143]]="selectedFilter() === 'todo'"
+      class="px-3 py-2 font-semibold text-[12px] md:text-[16px] rounded-[12px] flex justify-center items-center gap-1 flex-1"
+    >
+      Todo
+      <span *ngIf="todosCount()" class="ml-2 bg-red-200 bg-[#EC2001] text-[white] text-[12px] rounded-full px-2 py-0.5 text-sm">
+        {{ normalizedItems().length }}
+      </span>
+    </button>
+  </div>
+
+  <!-- Chips -->
+  <div class="px-2">
+    <button
+      *ngFor="let c of chips"
+      (click)="onChipSelect(c.key)"
+      [class.bg-gray-200]="selectedChip() === c.key"
+      class="px-[8px] py-[2px] text-[12px] border-[2px] border-b-[4px] font-bold rounded-full mr-3 mb-2 md:mb-0"
+    >
+      {{ c.key }}
+    </button>
+  </div>
+
+  <!-- Chips Filtered List -->
+  <div class="mt-4 flex gap-5 flex-wrap">
+    <button *ngIf="normalizedItems().length && selectedFilter() === 'all'" class="mr-4" (click)="openModal()">
+      <app-icon name="plus" label="Add more" color="#FED143" borderColor="#FED143"></app-icon>
+    </button>
+    <div *ngFor="let item of normalizedItems()" class="group relative flex justify-between items-start">
+      <app-icon
+        [name]="item.icon ? item.icon : 'file-text'"
+        [label]="item.title"
+      ></app-icon>
+      <div class="ml-4 text-sm text-right text-gray-700">
+        <div class="mt-2 relative">
+          <div class="absolute top-0 right-0 opacity-0 group-hover:opacity-100">
+            <button
+              (click)="toggleMenu(item.id)"
+              class="right-2 p-1 rounded"
+            >
+              <lucide-icon name="ellipsis-vertical" class="inline-block ml-1"></lucide-icon>
+            </button>
+            <div
+              *ngIf="openMenuId() === item.id"
+              class="absolute right-2 top-8 bg-white border rounded shadow-md z-10 w-32"
+            >
+              <button (click)="openExam(item)" class="block w-full text-left px-3 py-2 hover:bg-gray-100">Open</button>
+              <button (click)="editExam(item)" class="block w-full text-left px-3 py-2 hover:bg-gray-100">Edit</button>
+              <button (click)="deleteExam(item)" class="block w-full text-left px-3 py-2 hover:bg-gray-100 text-red-500">Delete</button>
+              <button (click)="toggleTodoStatus(item)" class="block w-full text-left px-3 py-2 hover:bg-gray-100">
+                {{ item.isTodo ? 'Mark as Done' : 'Mark as Todo' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="normalizedItems().length === 0" class="flex items-center justify-center flex-col flex-1 p-4">
+      <div class="text-center flex-1 flex flex-col">
+        <h3 class="mb-2 font-semibold text-[16px]"> No WorkItem Added </h3>
+        <p class="mb-4 text-[#727688] text-[14px]">As soon as teacher uploads it will come here</p>
+      </div>
+      <div class="flex justify-center mt-4">
+        <button (click)="openModal()" class="block w-[345px] text-center px-3 py-2 border-t-[1px] border-l-[1px] border-r-[1px] border-b-[5px] border-[#FED143] rounded-[12px] bg-[bg-black]">Add</button>
+      </div>
+    </div>
+
+    <!-- Modal -->
+    <div
+      *ngIf="showExamTypeModal()"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+    >
+      <div class="bg-white p-6 rounded shadow w-80">
+        <h3 class="font-semibold text-lg mb-4 relative flex justify-between align-center">Select Type
+          <button
+            (click)="closeModal()"
+            class="text-gray-500 hover:text-gray-700 text-xl"
+            aria-label="Close"
+          >
+            &times;
+          </button>
+        </h3>
+        <button class="w-full mb-2 p-2 border rounded hover:bg-gray-100" (click)="createExamModal.show.set(true)">Online Exam</button>
+      </div>
+    </div>
+    <app-create-exam-modal
+      #createExamModal
+      [courseId]="courseId"
+      [examToEdit]="createExamModal.examToEdit"
+      [weekId]="selectedWeekId()"
+    ></app-create-exam-modal>
+  </div>
+</div>
